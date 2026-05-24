@@ -82,11 +82,15 @@ export const likePost = async (req, res) => {
       });
     }
 
-    const isLiked = post.likes.includes(id);
+    const isLiked = post.likes.some(
+      (userId) => userId.toString() === id
+    );
 
     if (isLiked) {
 
-      post.likes.pull(id);
+      post.likes = post.likes.filter(
+        (userId) => userId.toString() !== id
+      );
 
       await post.save();
 
@@ -203,6 +207,87 @@ export const followUnfollow = async (req, res) => {
 
     return res.status(200).json({
       message: "User followed successfully",
+    });
+
+  } catch (error) {
+
+    return res.status(500).json({
+      message: error.message,
+    });
+
+  }
+
+};
+
+export const deletePost = async (req, res) => {
+
+  try {
+
+    const id = req.params.id;
+
+    const post = await Post.findById(id);
+
+    if (!post) {
+      return res.status(404).json({
+        message: "No post found"
+      });
+    }
+
+    if (post.author.toString() !== req.user.id) {
+      return res.status(403).json({
+        message: "User is not authorized"
+      });
+    }
+
+    await post.deleteOne();
+
+    return res.status(200).json({
+      message: "Post deleted successfully"
+    });
+
+  } catch (error) {
+
+    return res.status(500).json({
+      message: error.message
+    });
+
+  }
+
+};
+
+export const updatePost = async (req, res) => {
+
+  try {
+
+    const { content, image } = req.body;
+
+    const post = await Post.findById(req.params.id);
+
+    // check post exists
+    if (!post) {
+      return res.status(404).json({
+        message: "Post not found",
+      });
+    }
+
+    // authorization check
+    if (post.author.toString() !== req.user.id) {
+      return res.status(403).json({
+        message: "User is not authorized to update this post",
+      });
+    }
+
+    // partial updates
+    post.content = content || post.content;
+
+    post.image = image || post.image;
+
+    // save updated post
+    await post.save();
+
+    return res.status(200).json({
+      message: "Post updated successfully",
+      post,
     });
 
   } catch (error) {

@@ -6,13 +6,17 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 const postRouter = express();
 
 
-postRouter.post("/create", authMiddleware, postcontroler.createPost);
+postRouter.post("/", authMiddleware, postcontroler.createPost);
 
 postRouter.get("/feed",postcontroler.feed);
 
 postRouter.put("/:id/like", authMiddleware, postcontroler.likePost);
 
-postRouter.post("/:id/comments",authMiddleware,postcontroler.addComment);
+postRouter.post("/:id/comment",authMiddleware,postcontroler.addComment);
+
+postRouter.delete("/:id",authMiddleware,postcontroler.deletePost);
+
+postRouter.put("/:id", authMiddleware, postcontroler.updatePost);
 
 
 
